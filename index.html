@@ -4,68 +4,29 @@
   <title>YouTube AR QR Generator</title>
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      max-width: 600px;
-      margin: 0 auto;
-      padding: 20px;
-      text-align: center;
-    }
-    #youtubeUrl {
-      width: 100%;
-      padding: 12px;
-      margin: 20px 0;
-      border: 2px solid #FF0000;
-      border-radius: 4px;
-      font-size: 16px;
-    }
-    button {
-      background: #FF0000;
-      color: white;
-      border: none;
-      padding: 12px 24px;
-      font-size: 16px;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    #qr-output {
-      margin: 30px auto;
-      display: inline-block;
-    }
+    body { font-family: Arial; text-align: center; margin-top: 50px; }
+    input { padding: 10px; width: 80%; max-width: 400px; }
+    button { padding: 10px 20px; background: #FF0000; color: white; border: none; margin: 10px; }
+    #qr-output { margin: 20px auto; }
   </style>
 </head>
 <body>
-  <h1>YouTube to AR QR Generator</h1>
-  <p>Paste any YouTube link to create an AR-ready QR code:</p>
-  
-  <input type="text" id="youtubeUrl" placeholder="https://www.youtube.com/watch?v=...">
-  <button onclick="generateQR()">Generate AR QR Code</button>
-  
+  <h1>YouTube AR QR Generator</h1>
+  <input type="text" id="youtubeUrl" placeholder="Paste YouTube URL">
+  <button onclick="generateQR()">Generate QR</button>
   <div id="qr-output"></div>
 
   <script>
     function generateQR() {
-      const youtubeUrl = document.getElementById("youtubeUrl").value.trim();
-      
-      // Validate URL
-      if (!youtubeUrl.includes('youtube.com') && !youtubeUrl.includes('youtu.be')) {
-        alert('Please enter a valid YouTube URL');
-        return;
-      }
-
-      // Extract video ID
-      const videoId = youtubeUrl.includes('youtu.be/') 
-        ? youtubeUrl.split('youtu.be/')[1].split('?')[0]
-        : new URL(youtubeUrl).searchParams.get('v');
-
-      // Generate QR code with correct repository path (Qr instead of Qz)
+      const youtubeUrl = document.getElementById("youtubeUrl").value;
+      const videoId = youtubeUrl.split('v=')[1]; 
       const arUrl = `https://deviljitu1.github.io/Qr/ar.html?v=${videoId}`;
       
       document.getElementById("qr-output").innerHTML = "";
       new QRCode(document.getElementById("qr-output"), {
         text: arUrl,
-        width: 250,
-        height: 250,
+        width: 200,
+        height: 200,
         colorDark: "#FF0000",
         colorLight: "#ffffff",
       });
