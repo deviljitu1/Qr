@@ -54,7 +54,7 @@
       }
 
       // Generate shareable AR link
-      const arPageUrl = `${window.location.origin}/ar-player.html?${youtubeUrl.includes('youtu.be/') ? 'v=' + youtubeUrl.split('/').pop() : youtubeUrl.split('?')[1]}`;
+      const arPageUrl = `${window.location.origin}/ar.html?${youtubeUrl.includes('youtu.be/') ? 'v=' + youtubeUrl.split('/').pop() : youtubeUrl.split('?')[1]}`;
 
       // Create QR code
       document.getElementById("qr-output").innerHTML = "";
