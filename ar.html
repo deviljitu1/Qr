@@ -2,6 +2,7 @@
 <html>
 <head>
   <title>AR YouTube Player</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
   <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
   <style>
     #startButton {
@@ -10,19 +11,27 @@
       left: 50%;
       transform: translateX(-50%);
       padding: 12px 24px;
-      background: #FF0000; /* YouTube red */
+      background: #FF0000;
       color: white;
       border: none;
       border-radius: 50px;
       font-size: 16px;
       z-index: 10000;
     }
+    a-scene {
+      width: 100vw;
+      height: 100vh;
+    }
   </style>
 </head>
 <body>
-  <a-scene vr-mode-ui="enabled: false">
-    <!-- Dynamic video will appear here -->
-    <a-video id="yt-video" width="4" height="2.25" position="0 1.5 -3"></a-video>
+  <a-scene 
+    vr-mode-ui="enabled: false"
+    xr-mode
+    webxr="optionalFeatures: hit-test; requiredFeatures: ar"
+    renderer="colorManagement: true"
+  >
+    <a-video id="ar-video" width="4" height="2.25" position="0 1.5 -3"></a-video>
     <a-entity camera></a-entity>
   </a-scene>
 
@@ -30,41 +39,39 @@
 
   <script>
     document.getElementById('startButton').addEventListener('click', async () => {
-      // Extract YouTube ID from URL (supports youtu.be/xxx and youtube.com?v=xxx)
-      const urlParams = new URLSearchParams(window.location.search);
-      let videoId = urlParams.get('v');
-      
-      if (!videoId) {
-        const pathMatch = window.location.pathname.match(/\/v\/([^\/]+)/);
-        if (pathMatch) videoId = pathMatch[1];
+      try {
+        // Start AR session
+        const scene = document.querySelector('a-scene');
+        await scene.enterXR('ar', 'local', { requiredFeatures: ['hit-test'] });
+        
+        // Get YouTube video ID from URL
+        const videoId = new URLSearchParams(window.location.search).get('v');
+        console.log("Playing YouTube video:", videoId);
+
+        // Create hidden YouTube player
+        const iframe = document.createElement('iframe');
+        iframe.style.cssText = `
+          position: absolute;
+          width: 1px;
+          height: 1px;
+          opacity: 0;
+          pointer-events: none;
+        `;
+        iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0`;
+        document.body.appendChild(iframe);
+
+        // Wait for YouTube's video element to load
+        const checkVideo = setInterval(() => {
+          const ytVideo = document.querySelector('video');
+          if (ytVideo) {
+            clearInterval(checkVideo);
+            const texture = new THREE.VideoTexture(ytVideo);
+            document.getElementById('ar-video').setAttribute('material', 'src', texture);
+          }
+        }, 500);
+      } catch (error) {
+        alert("AR failed to start: " + error.message);
       }
-
-      if (!videoId) {
-        alert('No YouTube video ID found in URL');
-        return;
-      }
-
-      // Create transparent YouTube player
-      const iframe = document.createElement('iframe');
-      iframe.style.cssText = `
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        opacity: 0;
-        pointer-events: none;
-      `;
-      iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0`;
-      document.body.appendChild(iframe);
-
-      // Wait for YouTube's video element to load
-      const checkVideo = setInterval(() => {
-        const ytVideo = document.querySelector('video');
-        if (ytVideo) {
-          clearInterval(checkVideo);
-          const texture = new THREE.VideoTexture(ytVideo);
-          document.getElementById('yt-video').setAttribute('material', 'src', texture);
-        }
-      }, 500);
     });
   </script>
 </body>
