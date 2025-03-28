@@ -20,7 +20,7 @@
     function generateQR() {
       const youtubeUrl = document.getElementById("youtubeUrl").value;
       const videoId = new URL(youtubeUrl).searchParams.get("v");
-      const arPageUrl = `${window.location.origin}/index.html?v=${videoId}`;
+      const arPageUrl = `${window.location.origin}/ar.html?v=${videoId}`;
 
       document.getElementById("qr-output").innerHTML = "";
       new QRCode(document.getElementById("qr-output"), {
