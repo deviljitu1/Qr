@@ -1,45 +1,42 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>AR Video Player</title>
+  <title>AR Experience</title>
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
+  <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/aframe-webxr@1.1.0/dist/aframe-webxr.min.js"></script>
   <style>
-    #arOverlay {
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: #000;
+    }
+    #loading {
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0,0,0,0.9);
+      background: #000;
       color: white;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
       z-index: 10000;
+      font-family: Arial, sans-serif;
     }
-    #startButton {
-      padding: 15px 30px;
-      background: #FF0000;
-      color: white;
-      border: none;
-      border-radius: 50px;
-      font-size: 18px;
-      margin-top: 20px;
-    }
-    a-scene {
-      width: 100vw;
-      height: 100vh;
+    #loading.hidden {
+      display: none;
     }
   </style>
 </head>
 <body>
-  <div id="arOverlay">
-    <h2>Point your camera at a flat surface</h2>
-    <button id="startButton">START AR EXPERIENCE</button>
+  <div id="loading">
+    <h2>Initializing AR...</h2>
+    <p>Point your camera at a flat surface</p>
   </div>
 
   <a-scene 
@@ -50,27 +47,28 @@
       requiredFeatures: ar;
       referenceSpaceType: local;
     "
-    renderer="colorManagement: true"
+    renderer="colorManagement: true; antialias: true;"
+    loading-screen="enabled: false"
   >
+    <a-assets>
+      <video id="video" autoplay loop crossorigin="anonymous"></video>
+    </a-assets>
     <a-video id="ar-video" width="4" height="2.25" position="0 1.5 -3"></a-video>
     <a-entity camera></a-entity>
   </a-scene>
 
   <script>
-    document.getElementById('startButton').addEventListener('click', async () => {
+    (async function() {
       try {
-        const scene = document.querySelector('a-scene');
-        document.getElementById('arOverlay').style.display = 'none';
+        // Get video ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const videoId = urlParams.get('v');
         
-        // Start AR session
-        if (scene.hasLoaded) {
-          await scene.enterAR(); // Fixed: Using enterAR() instead of enterXR()
-        } else {
-          scene.addEventListener('loaded', () => scene.enterAR());
+        if (!videoId || videoId.length !== 11) {
+          throw new Error("Invalid video ID");
         }
 
-        // Load YouTube video
-        const videoId = new URLSearchParams(window.location.search).get('v');
+        // Create hidden YouTube player
         const iframe = document.createElement('iframe');
         iframe.style.cssText = `
           position: absolute;
@@ -78,21 +76,43 @@
           height: 1px;
           opacity: 0;
         `;
-        iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1`;
+        iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0`;
         document.body.appendChild(iframe);
 
-        setTimeout(() => {
-          const ytVideo = document.querySelector('video');
-          if (ytVideo) {
-            const texture = new THREE.VideoTexture(ytVideo);
-            document.getElementById('ar-video').setAttribute('material', 'src', texture);
-          }
-        }, 2000);
+        // Start AR immediately
+        const scene = document.querySelector('a-scene');
+        const loading = document.getElementById('loading');
         
+        scene.addEventListener('loaded', async () => {
+          try {
+            await scene.enterAR();
+            
+            // Apply video texture when ready
+            setTimeout(() => {
+              const ytVideo = document.querySelector('video');
+              if (ytVideo) {
+                const texture = new THREE.VideoTexture(ytVideo);
+                document.getElementById('ar-video').setAttribute('material', 'src', texture);
+                loading.classList.add('hidden');
+              }
+            }, 2000);
+          } catch (arError) {
+            loading.innerHTML = `
+              <h2 style="color:red">AR Failed</h2>
+              <p>${arError.message}</p>
+              <p>Try Chrome (Android) or Safari (iOS 15+)</p>
+            `;
+          }
+        });
+
       } catch (error) {
-        alert(`AR failed: ${error.message}\n\nSupported browsers:\n• Chrome for Android\n• Safari iOS 15+`);
+        document.getElementById('loading').innerHTML = `
+          <h2 style="color:red">Error</h2>
+          <p>${error.message}</p>
+          <p>Scan a valid QR code</p>
+        `;
       }
-    });
+    })();
   </script>
 </body>
 </html>
