@@ -43,19 +43,19 @@
         return;
       }
 
-      // Create video element
-      const video = document.createElement('video');
-      video.id = 'videoElement';
-      video.src = `https://your-video-host.com/videos/${videoId}.mp4`; // Replace with your hosted video
-      video.autoplay = true;
-      video.muted = true;
-      video.loop = true;
-      video.crossOrigin = 'anonymous'; // Ensure CORS is handled
-      document.body.appendChild(video);
+      // Create an iframe for YouTube video
+      const iframe = document.createElement('iframe');
+      iframe.id = 'youtubeIframe';
+      iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&loop=1&playlist=${videoId}`;
+      iframe.style.display = 'none'; // Hide the iframe
+      document.body.appendChild(iframe);
 
-      // Apply video to A-Frame material
+      // Apply YouTube video as a texture to A-Frame material
       const arVideo = document.querySelector('#arVideo');
-      arVideo.setAttribute('material', 'src', '#videoElement');
+      arVideo.setAttribute('material', {
+        shader: 'html',
+        target: '#youtubeIframe',
+      });
     });
   </script>
 </body>
