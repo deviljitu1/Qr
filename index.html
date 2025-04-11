@@ -1,85 +1,32 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>AR QR Generator</title>
+  <title>QR Generator</title>
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      max-width: 600px;
-      margin: 0 auto;
-      padding: 20px;
-      text-align: center;
-    }
-    input {
-      width: 100%;
-      padding: 12px;
-      margin: 10px 0;
-      border: 2px solid #FF0000;
-      border-radius: 4px;
-      font-size: 16px;
-    }
-    button {
-      background: #FF0000;
-      color: white;
-      border: none;
-      padding: 12px 24px;
-      font-size: 16px;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    #qr-output {
-      margin: 20px auto;
-    }
-    #error {
-      color: red;
-      min-height: 20px;
-      margin: 10px 0;
-    }
+    body { font-family: Arial; text-align: center; margin-top: 50px; }
+    input { padding: 10px; width: 300px; }
+    button { padding: 10px 20px; background: #6200ee; color: white; border: none; }
+    #qr-output { margin: 20px; }
   </style>
 </head>
 <body>
   <h1>YouTube to AR QR Generator</h1>
-  <input type="text" id="youtubeUrl" placeholder="Paste YouTube URL (video or Short)">
-  <button onclick="generateQR()">Generate QR Code</button>
-  <div id="error"></div>
+  <input type="text" id="youtubeUrl" placeholder="Paste YouTube URL">
+  <button onclick="generateQR()">Generate QR</button>
   <div id="qr-output"></div>
 
   <script>
     function generateQR() {
-      const urlInput = document.getElementById("youtubeUrl").value.trim();
-      const errorEl = document.getElementById("error");
-      errorEl.textContent = "";
+      const youtubeUrl = document.getElementById("youtubeUrl").value;
+      const videoId = new URL(youtubeUrl).searchParams.get("v");
+      const arPageUrl = `${window.location.origin}/ar-video.html?v=${videoId}`;
 
-      // Extract video ID from all YouTube URL formats
-      function getVideoId(url) {
-        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|shorts\/|watch\?v=|&v=)([^#&?]*).*/;
-        const match = url.match(regExp);
-        return (match && match[2].length === 11) ? match[2] : null;
-      }
-
-      // Validate URL
-      if (!urlInput) {
-        errorEl.textContent = "Please enter a YouTube URL";
-        return;
-      }
-
-      const videoId = getVideoId(urlInput.startsWith('http') ? urlInput : 'https://' + urlInput);
-      
-      if (!videoId) {
-        errorEl.textContent = "Invalid YouTube URL. Examples:\nhttps://youtube.com/watch?v=...\nhttps://youtube.com/shorts/...";
-        return;
-      }
-
-      // Generate QR with direct AR link
-      const arUrl = `${window.location.origin}/ar.html?v=${videoId}&autoplay=1`;
       document.getElementById("qr-output").innerHTML = "";
       new QRCode(document.getElementById("qr-output"), {
-        text: arUrl,
-        width: 250,
-        height: 250,
-        colorDark: "#FF0000",
-        colorLight: "#ffffff",
+        text: arPageUrl,
+        width: 200,
+        height: 200,
       });
     }
   </script>
