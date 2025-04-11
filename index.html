@@ -18,10 +18,29 @@
 
   <script>
     function generateQR() {
-      const youtubeUrl = document.getElementById("youtubeUrl").value;
+      let youtubeUrl = document.getElementById("youtubeUrl").value;
+
+      // Ensure the URL has a valid protocol
+      if (!youtubeUrl.startsWith("http://") && !youtubeUrl.startsWith("https://")) {
+        youtubeUrl = "https://" + youtubeUrl;
+      }
 
       try {
-        const videoId = new URL(youtubeUrl).searchParams.get("v");
+        let videoId = null;
+
+        // Handle standard YouTube URL
+        if (youtubeUrl.includes("youtube.com/watch")) {
+          videoId = new URL(youtubeUrl).searchParams.get("v");
+        }
+        // Handle shortened YouTube URL
+        else if (youtubeUrl.includes("youtu.be/")) {
+          videoId = youtubeUrl.split("youtu.be/")[1].split("?")[0];
+        }
+        // Handle embed YouTube URL
+        else if (youtubeUrl.includes("youtube.com/embed/")) {
+          videoId = youtubeUrl.split("embed/")[1].split("?")[0];
+        }
+
         if (!videoId) {
           alert("Invalid YouTube URL. Please include a valid video ID.");
           return;
